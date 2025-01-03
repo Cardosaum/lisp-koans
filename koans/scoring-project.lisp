@@ -50,7 +50,26 @@
 ;;; Your goal is to write the scoring function for Greed.
 
 (defun score (&rest dice)
-  ____)
+  (labels ((dice-grouped (dice)
+             (let ((grouped (make-hash-table :test 'equal)))
+               (dolist (d dice)
+                 (incf (gethash d grouped 0)))
+               grouped))
+           (single-score (die)
+             (cond ((= die 1) 100)
+                   ((= die 5) 50)
+                   (t 0)))
+           (triple-score (die)
+             (cond ((= die 1) 1000)
+                   ((= die 5) 500)
+                   (t (* 100 die))))
+           (compute-score (grouped)
+             (loop for die being the hash-keys of grouped
+                     using (hash-value count)
+                   sum (cond ((> count 3) (+ (triple-score die) (* (single-score die) (- count 3))))
+                             ((= count 3) (triple-score die))
+                             (t (* (single-score die) count))))))
+    (compute-score (dice-grouped dice))))
 
 (define-test score-of-an-empty-list-is-zero
   (assert-equal 0 (score)))
